@@ -1,22 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { getCurrentActor } from "@/auth";
 import { getAstrologyEngine } from "@/lib/astrology/engine";
 import { getDemoArtifact } from "@/lib/demo";
 import { loadReportArtifact } from "@/lib/jobs/processor";
 import { rateLimit, requestIdentifier } from "@/lib/security/rate-limit";
-
-const schema = z
-  .object({
-    reportId: z.string().min(1).max(100),
-    startDate: z.string().date(),
-    endDate: z.string().date(),
-  })
-  .refine(
-    ({ startDate, endDate }) =>
-      new Date(endDate).getTime() > new Date(startDate).getTime(),
-    { path: ["endDate"], message: "End date must be after start date." },
-  );
+import { transitRequestSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -33,10 +21,21 @@ export async function POST(request: Request) {
       { status: 429 },
     );
   }
-  const parsed = schema.safeParse(await request.json());
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Request body must be valid JSON." }, { status: 400 });
+  }
+
+  const parsed = transitRequestSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Enter a valid range of up to two years." },
+      {
+        error: "Enter a valid range of up to two years.",
+        issues: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
