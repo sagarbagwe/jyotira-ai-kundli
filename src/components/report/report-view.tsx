@@ -7,12 +7,14 @@ import {
   CalendarClock,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   CircleDollarSign,
   Compass,
   GraduationCap,
   Heart,
   Home,
   Info,
+  Leaf,
   Languages,
   Orbit,
   ShieldCheck,
@@ -38,6 +40,7 @@ const TABS = [
   ["timing", "Transits"],
   ["rules", "Yogas & Doshas"],
   ["life", "Life areas"],
+  ["guidance", "Periods & remedies"],
 ] as const;
 
 type Tab = (typeof TABS)[number][0];
@@ -130,6 +133,71 @@ function InterpretationSection({
             </div>
           </div>
         )}
+        {(section.supportivePeriods.length > 0 ||
+          section.cautionPeriods.length > 0) && (
+          <details className="group mt-5 rounded-[10px] border border-line bg-soft">
+            <summary className="flex min-h-12 list-none items-center gap-3 px-4 py-3 text-sm font-semibold">
+              <CalendarClock className="size-4 text-primary" />
+              Traditional timing windows
+              <ChevronDown className="ml-auto size-4 text-muted transition group-open:rotate-180" />
+            </summary>
+            <div className="grid gap-3 border-t border-line p-4 sm:grid-cols-2">
+              {([
+                {
+                  label: "Supportive",
+                  periods: section.supportivePeriods,
+                  tone: "positive" as const,
+                },
+                {
+                  label: "Caution",
+                  periods: section.cautionPeriods,
+                  tone: "attention" as const,
+                },
+              ]).map(({ label, periods, tone }) => (
+                <div key={label}>
+                  <p className="text-xs font-bold tracking-[.08em] text-muted uppercase">
+                    {label}
+                  </p>
+                  <div className="mt-2 space-y-2">
+                    {periods.length ? (
+                      periods.map((period) => (
+                          <div
+                            key={`${period.label}-${period.startDate}`}
+                            className="rounded-[8px] border border-line bg-surface p-3"
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-xs font-semibold">
+                                {period.label}
+                              </p>
+                              <Badge tone={tone}>
+                                {titleCase(period.confidence)}
+                              </Badge>
+                            </div>
+                            {(period.startDate || period.endDate) && (
+                              <p className="mt-1 text-[11px] text-muted">
+                                {period.startDate
+                                  ? formatDate(period.startDate)
+                                  : "—"}{" "}
+                                –{" "}
+                                {period.endDate
+                                  ? formatDate(period.endDate)
+                                  : "—"}
+                              </p>
+                            )}
+                            <p className="mt-2 text-xs leading-5 text-muted">
+                              {period.reasoning}
+                            </p>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-xs text-muted">None generated.</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
       </CardContent>
     </Card>
   );
@@ -148,12 +216,18 @@ export function ReportView({
 }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [vargaCode, setVargaCode] = useState("D9");
+  const [selectedPlanetName, setSelectedPlanetName] = useState<
+    CalculatedChart["planets"][number]["name"] | null
+  >(null);
   const selectedVarga = chart.divisionalCharts.find(
     (varga) => varga.code === vargaCode,
   );
   const detectedYogas = chart.yogas.filter((yoga) => yoga.detected);
   const relevantDoshas = chart.doshas.filter(
     (dosha) => dosha.detected || dosha.status === "tradition-dependent",
+  );
+  const selectedPlanet = chart.planets.find(
+    (planet) => planet.name === selectedPlanetName,
   );
 
   const slowIngresses = useMemo(
@@ -377,9 +451,15 @@ export function ReportView({
                   {chart.planets.map((planet) => (
                     <tr key={planet.name} className="border-b border-line last:border-0">
                       <td className="px-4 py-4">
-                        <span className="font-semibold">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPlanetName(planet.name)}
+                          className="inline-flex min-h-9 items-center gap-2 rounded-[8px] px-2 text-left font-semibold transition hover:bg-primary-soft hover:text-primary"
+                          aria-expanded={selectedPlanetName === planet.name}
+                        >
                           {planet.glyph} {titleCase(planet.name)}
-                        </span>
+                          <ChevronRight className="size-3.5" />
+                        </button>
                       </td>
                       <td className="px-4 py-4">
                         <span className="font-semibold">{titleCase(planet.sign)}</span>
@@ -425,6 +505,81 @@ export function ReportView({
                 </tbody>
               </table>
             </div>
+            {selectedPlanet && (
+              <div className="border-t border-line bg-soft/45 p-5 sm:p-6">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone="positive">Calculated position</Badge>
+                      <Badge tone="primary">
+                        Traditional Vedic interpretation
+                      </Badge>
+                    </div>
+                    <h3 className="font-display mt-4 text-2xl font-semibold">
+                      {selectedPlanet.glyph} {titleCase(selectedPlanet.name)}
+                    </h3>
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+                      {titleCase(selectedPlanet.name)} is calculated in{" "}
+                      {titleCase(selectedPlanet.sign)} at{" "}
+                      {formatDegree(selectedPlanet.degreeInSign)}, house{" "}
+                      {selectedPlanet.house}, {selectedPlanet.nakshatra.name}{" "}
+                      pada {selectedPlanet.nakshatra.pada}. Traditional Jyotish
+                      considers this placement together with lordship, aspects,
+                      dignity and divisional charts; it does not establish a
+                      scientific or guaranteed outcome.
+                    </p>
+                  </div>
+                  <a
+                    href="#ask"
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-[9px] border border-line bg-surface px-4 text-sm font-semibold transition hover:bg-primary-soft"
+                  >
+                    Ask AI about this planet
+                  </a>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    [
+                      "Condition",
+                      [
+                        titleCase(selectedPlanet.dignity),
+                        selectedPlanet.retrograde ? "Retrograde" : "Direct",
+                        selectedPlanet.combust ? "Combust" : "Not combust",
+                      ].join(" · "),
+                    ],
+                    [
+                      "Lordship",
+                      selectedPlanet.lordships.length
+                        ? selectedPlanet.lordships
+                            .map((house) => `House ${house}`)
+                            .join(", ")
+                        : "No sign lordship in this framework",
+                    ],
+                    [
+                      "Important aspects",
+                      selectedPlanet.aspects.length
+                        ? selectedPlanet.aspects
+                            .map((aspect) => `H${aspect.toHouse}`)
+                            .join(", ")
+                        : "None in configured Parashari screen",
+                    ],
+                    [
+                      "Strength screen",
+                      `${selectedPlanet.strength.score}/100 · ${titleCase(selectedPlanet.strength.label)}`,
+                    ],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="rounded-[9px] border border-line bg-surface p-4"
+                    >
+                      <p className="text-[11px] font-bold tracking-[.08em] text-muted uppercase">
+                        {label}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -715,6 +870,131 @@ export function ReportView({
               content is general only; financial and legal decisions require
               qualified professional advice.
             </p>
+          </Card>
+        </div>
+      )}
+
+      {tab === "guidance" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <Badge tone="attention">Uncertain prediction</Badge>
+              <h2 className="mt-3 text-xl font-semibold">
+                Important periods with evidence
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                Dates are calculated where available; meanings are traditional
+                interpretations and never guarantees.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {interpretation.importantPeriods.length ? (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {interpretation.importantPeriods.map((period) => (
+                    <div
+                      key={`${period.label}-${period.startDate}`}
+                      className="rounded-[10px] border border-line bg-soft p-4"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold">{period.label}</h3>
+                        <Badge
+                          tone={
+                            period.confidence === "high"
+                              ? "positive"
+                              : period.confidence === "medium"
+                                ? "gold"
+                                : "attention"
+                          }
+                        >
+                          {titleCase(period.confidence)} confidence
+                        </Badge>
+                      </div>
+                      {(period.startDate || period.endDate) && (
+                        <p className="mt-2 text-xs font-semibold text-primary">
+                          {period.startDate
+                            ? formatDate(period.startDate)
+                            : "—"}{" "}
+                          – {period.endDate ? formatDate(period.endDate) : "—"}
+                        </p>
+                      )}
+                      <p className="mt-3 text-sm leading-6 text-muted">
+                        {period.reasoning}
+                      </p>
+                      <div className="mt-4 space-y-2">
+                        {period.evidence.map((evidence) => (
+                          <div
+                            key={`${evidence.type}-${evidence.reference}`}
+                            className="rounded-[8px] border border-line bg-surface p-3"
+                          >
+                            <p className="text-xs font-semibold">
+                              {titleCase(evidence.type)} · {evidence.reference}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-muted">
+                              {evidence.explanation}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">
+                  No timing window was generated for this report.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Badge tone="gold">
+                <Leaf className="size-3.5" />
+                Optional traditional practices
+              </Badge>
+              <h2 className="mt-3 text-xl font-semibold">
+                Traditional remedies
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                Remedies are optional cultural or spiritual practices, not
+                treatments, guarantees, or replacements for professional care.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {interpretation.remedies.length ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {interpretation.remedies.map((remedy) => (
+                    <div
+                      key={remedy.title}
+                      className="rounded-[10px] border border-line bg-soft p-4"
+                    >
+                      <p className="font-semibold">{remedy.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-muted">
+                        {remedy.description}
+                      </p>
+                      <Badge className="mt-3" tone="neutral">
+                        Optional · {remedy.traditionLabel}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">
+                  No remedies were requested or generated. The application
+                  never uses fear-based claims to pressure users into remedies.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-attention/20 bg-attention-soft/55 p-5">
+            <ShieldCheck className="size-5 text-attention" />
+            <h3 className="mt-4 font-semibold">Caveats</h3>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-muted">
+              {interpretation.caveats.map((caveat) => (
+                <li key={caveat}>• {caveat}</li>
+              ))}
+            </ul>
           </Card>
         </div>
       )}
