@@ -45,7 +45,10 @@ describe("birth input validation", () => {
       birthInputSchema.safeParse({ ...validBirth, latitude: Number.NaN }).success,
     ).toBe(false);
     expect(
-      birthInputSchema.safeParse({ ...validBirth, timezone: "IST" }).success,
+      birthInputSchema.safeParse({
+        ...validBirth,
+        timezone: "Not/A_Real_Zone",
+      }).success,
     ).toBe(false);
   });
 });
