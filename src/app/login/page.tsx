@@ -6,15 +6,16 @@ import { ThemeToggle } from "@/components/app/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { env } from "@/lib/env";
 
 export const metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   const googleEnabled = Boolean(
-    process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET,
+    env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET,
   );
   const githubEnabled = Boolean(
-    process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET,
+    env.AUTH_GITHUB_ID && env.AUTH_GITHUB_SECRET,
   );
 
   return (
@@ -82,12 +83,14 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Link
-            href="/dashboard"
-            className={`${buttonStyles({ size: "lg" })} mt-6 w-full`}
-          >
-            Open demo workspace
-          </Link>
+          {env.DEMO_MODE && (
+            <Link
+              href="/dashboard"
+              className={`${buttonStyles({ size: "lg" })} mt-6 w-full`}
+            >
+              Open demo workspace
+            </Link>
+          )}
           <p className="mt-5 text-center text-xs leading-5 text-muted">
             By continuing, you agree to keep reports private and acknowledge
             the astrology disclaimer.
