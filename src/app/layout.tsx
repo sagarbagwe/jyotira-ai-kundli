@@ -2,10 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/app/theme-provider";
-import { assertProductionEnv } from "@/lib/env";
 import "./globals.css";
-
-assertProductionEnv();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,9 +17,6 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  ),
   title: {
     default: "Jyotira — AI Kundli & Vedic Astrology",
     template: "%s · Jyotira",
