@@ -11,7 +11,12 @@ const schema = z.object({
     .default("true")
     .transform((value) => value === "true"),
   DATABASE_URL: z.string().optional(),
+  DIRECT_URL: z.string().optional(),
   AUTH_SECRET: z.string().min(16).optional(),
+  AUTH_GOOGLE_ID: z.string().optional(),
+  AUTH_GOOGLE_SECRET: z.string().optional(),
+  AUTH_GITHUB_ID: z.string().optional(),
+  AUTH_GITHUB_SECRET: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
   GEMINI_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(3),
@@ -50,18 +55,33 @@ if (!parsed.success) {
 export const env = parsed.data;
 
 export function assertProductionEnv() {
-  if (env.NODE_ENV !== "production") return;
+  if (env.NODE_ENV !== "production" || env.DEMO_MODE) return;
 
   const missing: string[] = [];
   if (!env.DATABASE_URL) missing.push("DATABASE_URL");
+  if (!env.DIRECT_URL) missing.push("DIRECT_URL");
   if (!env.AUTH_SECRET) missing.push("AUTH_SECRET");
+  const hasGoogle = Boolean(env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET);
+  const hasGitHub = Boolean(env.AUTH_GITHUB_ID && env.AUTH_GITHUB_SECRET);
+  if (!hasGoogle && !hasGitHub) {
+    missing.push(
+      "AUTH_GOOGLE_ID/AUTH_GOOGLE_SECRET or AUTH_GITHUB_ID/AUTH_GITHUB_SECRET",
+    );
+  }
   if (env.AI_MODE === "gemini" && !env.GEMINI_API_KEY) {
     missing.push("GEMINI_API_KEY");
   }
-  if (env.STORAGE_DRIVER === "s3") {
+  if (env.STORAGE_DRIVER !== "s3") {
+    missing.push("STORAGE_DRIVER=s3");
+  } else {
     if (!env.S3_BUCKET) missing.push("S3_BUCKET");
     if (!env.S3_ACCESS_KEY_ID) missing.push("S3_ACCESS_KEY_ID");
     if (!env.S3_SECRET_ACCESS_KEY) missing.push("S3_SECRET_ACCESS_KEY");
+  }
+  if (!env.UPSTASH_REDIS_REST_URL) missing.push("UPSTASH_REDIS_REST_URL");
+  if (!env.UPSTASH_REDIS_REST_TOKEN) missing.push("UPSTASH_REDIS_REST_TOKEN");
+  if (env.NEXT_PUBLIC_APP_URL.includes("localhost")) {
+    missing.push("NEXT_PUBLIC_APP_URL (public production URL)");
   }
 
   if (missing.length) {
