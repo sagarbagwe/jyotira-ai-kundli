@@ -2,7 +2,7 @@
 
 import { CalendarDays, Clock3, MapPin, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { AppShell } from "@/components/app/app-shell";
 import { ReportView } from "@/components/report/report-view";
 import { StatelessAskKundli } from "@/components/report/stateless-ask-kundli";
@@ -15,28 +15,28 @@ import {
 } from "@/lib/stateless-report";
 import { formatDate } from "@/lib/utils";
 
+function subscribe() {
+  return () => undefined;
+}
+
+function browserSnapshot() {
+  return window.sessionStorage.getItem(STATELESS_REPORT_KEY);
+}
+
+function serverSnapshot() {
+  return null;
+}
+
 export default function LocalReportPage() {
-  const [artifact, setArtifact] = useState<StatelessReportArtifact | null>(null);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
+  const stored = useSyncExternalStore(subscribe, browserSnapshot, serverSnapshot);
+  const artifact = useMemo(() => {
+    if (!stored) return null;
     try {
-      const stored = window.sessionStorage.getItem(STATELESS_REPORT_KEY);
-      if (stored) setArtifact(JSON.parse(stored) as StatelessReportArtifact);
+      return JSON.parse(stored) as StatelessReportArtifact;
     } catch {
-      window.sessionStorage.removeItem(STATELESS_REPORT_KEY);
-    } finally {
-      setLoaded(true);
+      return null;
     }
-  }, []);
-
-  if (!loaded) {
-    return (
-      <AppShell title="Loading report" description="Opening your private browser-session report.">
-        <div className="h-96 animate-pulse rounded-[12px] border border-line bg-surface" />
-      </AppShell>
-    );
-  }
+  }, [stored]);
 
   if (!artifact) {
     return (
