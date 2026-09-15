@@ -11,7 +11,18 @@ export async function POST(request: Request) {
   if (!actor) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
-  const parsed = birthInputSchema.safeParse(await request.json());
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Request body must be valid JSON." },
+      { status: 400 },
+    );
+  }
+
+  const parsed = birthInputSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid birth information.", issues: parsed.error.flatten() },
