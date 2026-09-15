@@ -1,48 +1,151 @@
 import { z } from "zod";
 
-const optionalUrl = z.string().url().optional().or(z.literal(""));
+function blankToUndefined(value: unknown) {
+  return typeof value === "string" && value.trim() === "" ? undefined : value;
+}
+
+function normalizePublicUrl(value: unknown) {
+  const normalized = blankToUndefined(value);
+  if (
+    typeof normalized === "string" &&
+    !/^https?:\/\//i.test(normalized)
+  ) {
+    return `https://${normalized}`;
+  }
+  return normalized;
+}
+
+const optionalString = z
+  .preprocess(blankToUndefined, z.string().optional())
+  .catch(undefined);
+const optionalUrl = z
+  .preprocess(blankToUndefined, z.string().url().optional())
+  .catch(undefined);
 
 const schema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
-  NEXT_PUBLIC_APP_NAME: z.string().default("Jyotira"),
+  NODE_ENV: z
+    .preprocess(
+      blankToUndefined,
+      z.enum(["development", "test", "production"]).default("development"),
+    )
+    .catch("development"),
+  NEXT_PUBLIC_APP_URL: z
+    .preprocess(
+      normalizePublicUrl,
+      z.string().url().default("http://localhost:3000"),
+    )
+    .catch("http://localhost:3000"),
+  NEXT_PUBLIC_APP_NAME: z
+    .preprocess(blankToUndefined, z.string().default("Jyotira"))
+    .catch("Jyotira"),
   DEMO_MODE: z
-    .enum(["true", "false"])
-    .default("true")
+    .preprocess(
+      blankToUndefined,
+      z.enum(["true", "false"]).default("true"),
+    )
+    .catch("true")
     .transform((value) => value === "true"),
-  DATABASE_URL: z.string().optional(),
-  DIRECT_URL: z.string().optional(),
-  AUTH_SECRET: z.string().min(16).optional(),
-  AUTH_GOOGLE_ID: z.string().optional(),
-  AUTH_GOOGLE_SECRET: z.string().optional(),
-  AUTH_GITHUB_ID: z.string().optional(),
-  AUTH_GITHUB_SECRET: z.string().optional(),
-  GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
-  GEMINI_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(3),
-  AI_MODE: z.enum(["gemini", "stub"]).default("gemini"),
-  ASTRO_ENGINE: z.enum(["swiss"]).default("swiss"),
-  AYANAMSA: z.enum(["lahiri"]).default("lahiri"),
-  HOUSE_SYSTEM: z.enum(["whole-sign"]).default("whole-sign"),
-  NODE_TYPE: z.enum(["true", "mean"]).default("true"),
-  DASHA_YEAR_DAYS: z.coerce.number().min(360).max(366).default(365.2425),
-  STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
+  DATABASE_URL: optionalString,
+  DIRECT_URL: optionalString,
+  AUTH_SECRET: z
+    .preprocess(blankToUndefined, z.string().min(16).optional())
+    .catch(undefined),
+  AUTH_GOOGLE_ID: optionalString,
+  AUTH_GOOGLE_SECRET: optionalString,
+  AUTH_GITHUB_ID: optionalString,
+  AUTH_GITHUB_SECRET: optionalString,
+  GEMINI_API_KEY: optionalString,
+  GEMINI_MODEL: z
+    .preprocess(
+      blankToUndefined,
+      z.string().default("gemini-2.5-flash"),
+    )
+    .catch("gemini-2.5-flash"),
+  GEMINI_MAX_RETRIES: z
+    .preprocess(
+      blankToUndefined,
+      z.coerce.number().int().min(0).max(5).default(3),
+    )
+    .catch(3),
+  AI_MODE: z
+    .preprocess(
+      blankToUndefined,
+      z.enum(["gemini", "stub"]).default("gemini"),
+    )
+    .catch("gemini"),
+  ASTRO_ENGINE: z
+    .preprocess(blankToUndefined, z.enum(["swiss"]).default("swiss"))
+    .catch("swiss"),
+  AYANAMSA: z
+    .preprocess(blankToUndefined, z.enum(["lahiri"]).default("lahiri"))
+    .catch("lahiri"),
+  HOUSE_SYSTEM: z
+    .preprocess(
+      blankToUndefined,
+      z.enum(["whole-sign"]).default("whole-sign"),
+    )
+    .catch("whole-sign"),
+  NODE_TYPE: z
+    .preprocess(
+      blankToUndefined,
+      z.enum(["true", "mean"]).default("true"),
+    )
+    .catch("true"),
+  DASHA_YEAR_DAYS: z
+    .preprocess(
+      blankToUndefined,
+      z.coerce.number().min(360).max(366).default(365.2425),
+    )
+    .catch(365.2425),
+  STORAGE_DRIVER: z
+    .preprocess(
+      blankToUndefined,
+      z.enum(["local", "s3"]).default("local"),
+    )
+    .catch("local"),
   S3_ENDPOINT: optionalUrl,
-  S3_REGION: z.string().default("auto"),
-  S3_BUCKET: z.string().optional(),
-  S3_ACCESS_KEY_ID: z.string().optional(),
-  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_REGION: z
+    .preprocess(blankToUndefined, z.string().default("auto"))
+    .catch("auto"),
+  S3_BUCKET: optionalString,
+  S3_ACCESS_KEY_ID: optionalString,
+  S3_SECRET_ACCESS_KEY: optionalString,
   S3_FORCE_PATH_STYLE: z
-    .enum(["true", "false"])
-    .default("false")
+    .preprocess(
+      blankToUndefined,
+      z.enum(["true", "false"]).default("false"),
+    )
+    .catch("false")
     .transform((value) => value === "true"),
-  SIGNED_URL_TTL_SECONDS: z.coerce.number().int().min(60).max(86400).default(900),
-  MAX_UPLOAD_MB: z.coerce.number().min(1).max(25).default(10),
+  SIGNED_URL_TTL_SECONDS: z
+    .preprocess(
+      blankToUndefined,
+      z.coerce.number().int().min(60).max(86400).default(900),
+    )
+    .catch(900),
+  MAX_UPLOAD_MB: z
+    .preprocess(
+      blankToUndefined,
+      z.coerce.number().min(1).max(25).default(10),
+    )
+    .catch(10),
   UPSTASH_REDIS_REST_URL: optionalUrl,
-  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
-  AI_REQUESTS_PER_HOUR: z.coerce.number().int().min(1).default(20),
-  REPORTS_PER_DAY: z.coerce.number().int().min(1).default(5),
-  LOG_LEVEL: z.string().default("info"),
+  UPSTASH_REDIS_REST_TOKEN: optionalString,
+  AI_REQUESTS_PER_HOUR: z
+    .preprocess(
+      blankToUndefined,
+      z.coerce.number().int().min(1).default(20),
+    )
+    .catch(20),
+  REPORTS_PER_DAY: z
+    .preprocess(
+      blankToUndefined,
+      z.coerce.number().int().min(1).default(5),
+    )
+    .catch(5),
+  LOG_LEVEL: z
+    .preprocess(blankToUndefined, z.string().default("info"))
+    .catch("info"),
 });
 
 const parsed = schema.safeParse(process.env);
