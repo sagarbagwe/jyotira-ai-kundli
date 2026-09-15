@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+:root {
+  --canvas: #fbfaf7;
+  --surface: #ffffff;
+  --surface-soft: #f5f3ee;
+  --surface-raised: #eeece5;
+  --ink: #191b22;
+  --ink-secondary: #666873;
+  --border: #e3e0d8;
+  --primary: #6256c7;
+  --primary-strong: #4d43ad;
+  --primary-soft: #eeebff;
+  --gold: #b77828;
+  --gold-soft: #fbf0de;
+  --positive: #2d8a67;
+  --positive-soft: #e8f5ef;
+  --attention: #b36c24;
+  --attention-soft: #fff1df;
+  --danger: #cc5b52;
+  --danger-soft: #fceae8;
+  --shadow: 0 1px 2px rgb(27 24 17 / 4%), 0 14px 36px rgb(27 24 17 / 6%);
+}
+
+.dark {
+  --canvas: #141418;
+  --surface: #1c1c22;
+  --surface-soft: #23232a;
+  --surface-raised: #2d2d35;
+  --ink: #f7f6f3;
+  --ink-secondary: rgb(247 246 243 / 66%);
+  --border: rgb(255 255 255 / 13%);
+  --primary: #9a90f0;
+  --primary-strong: #b0a8f8;
+  --primary-soft: rgb(98 86 199 / 18%);
+  --gold: #dda85e;
+  --gold-soft: rgb(183 120 40 / 16%);
+  --positive: #68c29e;
+  --positive-soft: rgb(45 138 103 / 16%);
+  --attention: #e1a566;
+  --attention-soft: rgb(179 108 36 / 16%);
+  --danger: #e9857c;
+  --danger-soft: rgb(204 91 82 / 16%);
+  --shadow: 0 1px 2px rgb(0 0 0 / 12%), 0 18px 44px rgb(0 0 0 / 16%);
+}
+
+@theme inline {
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --color-surface: var(--surface);
+  --color-soft: var(--surface-soft);
+  --color-raised: var(--surface-raised);
+  --color-muted: var(--ink-secondary);
+  --color-line: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-attention: var(--attention);
+  --color-attention-soft: var(--attention-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  min-width: 320px;
+  background: var(--canvas);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--primary-soft);
+  color: var(--ink);
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.font-display {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -0.035em;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.app-background {
+  background:
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 28rem),
+    radial-gradient(circle at 86% 10%, color-mix(in srgb, var(--gold) 8%, transparent), transparent 24rem),
+    var(--canvas);
+}
+
+.hero-stars {
+  background-image:
+    radial-gradient(circle, color-mix(in srgb, var(--gold) 42%, transparent) 0.75px, transparent 0.9px),
+    radial-gradient(circle, color-mix(in srgb, var(--primary) 34%, transparent) 0.75px, transparent 0.9px);
+  background-position: 0 0, 18px 20px;
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 84%);
+}
+
+.surface-card {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow);
+}
+
+.glass {
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.hairline {
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--gold) 55%, var(--border)),
+    transparent
+  );
+  height: 1px;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-raised) transparent;
+}
+
+.animate-float {
+  animation: float 7s ease-in-out infinite;
+}
+
+.animate-orbit {
+  animation: orbit 34s linear infinite;
+  transform-origin: center;
+}
+
+.animate-fade-up {
+  animation: fade-up 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: #171717;
+  }
+
+  .surface-card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}
