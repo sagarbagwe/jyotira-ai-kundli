@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getAstrologyEngine } from "@/lib/astrology/engine";
 import { birthInputSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
@@ -17,9 +16,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid birth information.", issues: parsed.error.flatten() }, { status: 400 });
   }
   try {
+    const { getAstrologyEngine } = await import("@/lib/astrology/engine");
     const chart = await getAstrologyEngine().calculateNatal(parsed.data);
     return NextResponse.json({ chart }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
+    console.error("Astronomical calculation failed", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Astronomical calculation failed." },
       { status: 422 },

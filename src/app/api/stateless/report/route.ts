@@ -1,7 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { getAIProvider } from "@/lib/ai/provider";
-import { getAstrologyEngine } from "@/lib/astrology/engine";
 import { rateLimit, requestIdentifier } from "@/lib/security/rate-limit";
 import { generationRequestSchema } from "@/lib/validation/schemas";
 
@@ -29,14 +27,21 @@ export async function POST(request: Request) {
     );
   }
 
+  let stage = "loading the Swiss Ephemeris calculation engine";
   try {
+    const { getAstrologyEngine } = await import("@/lib/astrology/engine");
+    stage = "calculating the natal chart";
     const engine = getAstrologyEngine();
     const chart = await engine.calculateNatal(parsed.data.birth);
+    stage = "calculating transits";
     chart.transits = await engine.calculateTransits(
       chart,
       parsed.data.report.startDate,
       parsed.data.report.endDate,
     );
+    stage = "loading Gemini";
+    const { getAIProvider } = await import("@/lib/ai/provider");
+    stage = "generating the Gemini interpretation";
     const interpretation = await getAIProvider().interpretReport(chart, parsed.data.report);
     return NextResponse.json(
       {
@@ -52,8 +57,10 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } },
     );
   } catch (error) {
+    const detail = error instanceof Error ? error.message : "Unknown runtime error.";
+    console.error("Stateless Kundli generation failed", { stage, error });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Kundli report generation failed." },
+      { error: `Kundli generation failed while ${stage}: ${detail}` },
       { status: 503 },
     );
   }

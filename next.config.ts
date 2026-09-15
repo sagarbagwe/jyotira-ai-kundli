@@ -1,8 +1,17 @@
 import type { NextConfig } from "next";
 
+const swissEphemerisRuntimeFiles = [
+  "./node_modules/@swisseph/node/**/*",
+  "./node_modules/@swisseph/core/**/*",
+];
+
 const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["@swisseph/node", "@react-pdf/renderer"],
+  outputFileTracingIncludes: {
+    "/api/stateless/report": swissEphemerisRuntimeFiles,
+    "/api/calculate": swissEphemerisRuntimeFiles,
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "12mb",
