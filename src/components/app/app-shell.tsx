@@ -2,15 +2,12 @@
 
 import {
   BarChart3,
-  BookOpenText,
-  BrainCircuit,
   ChevronRight,
-  CircleUserRound,
   Gauge,
   HeartHandshake,
   Menu,
   Plus,
-  Settings,
+  ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react";
@@ -27,11 +24,9 @@ import { ThemeToggle } from "./theme-toggle";
 const navigation = [
   { label: "Dashboard", href: "/dashboard", icon: Gauge },
   { label: "New Kundli", href: "/new-kundli", icon: Plus },
-  { label: "My Reports", href: "/reports", icon: BookOpenText },
   { label: "Charts", href: "/charts", icon: BarChart3 },
   { label: "Predictions", href: "/predictions", icon: Sparkles },
   { label: "Compatibility", href: "/compatibility", icon: HeartHandshake },
-  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 function NavItems({ close }: { close?: () => void }) {
@@ -85,21 +80,12 @@ export function AppShell({
         <div className="mt-7">
           <NavItems />
         </div>
-        <div className="mt-auto">
-          <Link
-            href="/admin"
-            className="mb-3 flex min-h-11 items-center gap-3 rounded-[9px] px-3 text-sm font-semibold text-muted transition hover:bg-soft hover:text-foreground"
-          >
-            <BrainCircuit className="size-[18px]" />
-            Admin
-          </Link>
-          <div className="rounded-[10px] border border-line bg-soft p-3">
-            <div className="flex items-center gap-2">
-              <CircleUserRound className="size-5 text-primary" />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">Demo Explorer</p>
-                <p className="text-xs text-muted">Local showcase</p>
-              </div>
+        <div className="mt-auto rounded-[10px] border border-line bg-soft p-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-5 text-positive" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">Private session</p>
+              <p className="text-xs text-muted">No account · nothing stored</p>
             </div>
           </div>
         </div>
@@ -127,6 +113,9 @@ export function AppShell({
             <div className="mt-7">
               <NavItems close={() => setOpen(false)} />
             </div>
+            <div className="mt-7 rounded-[10px] border border-line bg-soft p-3 text-xs leading-5 text-muted">
+              Reports remain only in this browser tab. Download or print before closing it.
+            </div>
           </aside>
         </div>
       )}
@@ -148,7 +137,7 @@ export function AppShell({
             </div>
             <Badge tone="primary" className="hidden sm:inline-flex">
               <span className="size-1.5 rounded-full bg-positive" />
-              Calculation engine online
+              Gemini + calculation engine online
             </Badge>
             <div className="ml-auto flex items-center gap-1">
               <ThemeToggle />

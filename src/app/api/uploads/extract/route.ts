@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentActor } from "@/auth";
 import { getAIProvider } from "@/lib/ai/provider";
 import { prisma } from "@/lib/db/client";
+import { env } from "@/lib/env";
 import { rateLimit, requestIdentifier } from "@/lib/security/rate-limit";
 import {
   uploadStorageKey,
@@ -37,28 +38,32 @@ export async function POST(request: Request) {
     }
 
     const validated = await validateKundliUpload(file);
-    const storageKey = uploadStorageKey(actor.id, validated.extension);
-    await getStorageProvider().put(
-      storageKey,
-      validated.bytes,
-      validated.mimeType,
-      validated.safeName,
-    );
-
+    let storageKey: string | null = null;
     let databaseId: string | null = null;
-    if (prisma && !actor.demo) {
-      const record = await prisma.uploadedFile.create({
-        data: {
-          userId: actor.id,
-          storageKey,
-          originalName: validated.safeName,
-          mimeType: validated.mimeType,
-          sizeBytes: validated.bytes.byteLength,
-          sha256: validated.sha256,
-          status: "EXTRACTING",
-        },
-      });
-      databaseId = record.id;
+
+    if (!env.DEMO_MODE) {
+      storageKey = uploadStorageKey(actor.id, validated.extension);
+      await getStorageProvider().put(
+        storageKey,
+        validated.bytes,
+        validated.mimeType,
+        validated.safeName,
+      );
+
+      if (prisma && !actor.demo) {
+        const record = await prisma.uploadedFile.create({
+          data: {
+            userId: actor.id,
+            storageKey,
+            originalName: validated.safeName,
+            mimeType: validated.mimeType,
+            sizeBytes: validated.bytes.byteLength,
+            sha256: validated.sha256,
+            status: "EXTRACTING",
+          },
+        });
+        databaseId = record.id;
+      }
     }
 
     try {
@@ -72,17 +77,21 @@ export async function POST(request: Request) {
           data: { status: "EXTRACTED", extractedData: extracted },
         });
       }
-      return NextResponse.json({
-        file: {
-          id: databaseId,
-          name: validated.safeName,
-          mimeType: validated.mimeType,
-          sizeBytes: validated.bytes.byteLength,
-          sha256: validated.sha256,
+      return NextResponse.json(
+        {
+          file: {
+            id: databaseId,
+            name: validated.safeName,
+            mimeType: validated.mimeType,
+            sizeBytes: validated.bytes.byteLength,
+            sha256: validated.sha256,
+            retained: Boolean(storageKey),
+          },
+          extracted,
+          requiresConfirmation: true,
         },
-        extracted,
-        requiresConfirmation: true,
-      });
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
     } catch (error) {
       if (prisma && databaseId) {
         await prisma.uploadedFile.update({

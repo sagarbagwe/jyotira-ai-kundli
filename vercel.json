@@ -4,6 +4,12 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run vercel-build",
   "functions": {
+    "src/app/api/stateless/report/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/stateless/chat/route.ts": {
+      "maxDuration": 60
+    },
     "src/app/api/jobs/route.ts": {
       "maxDuration": 300
     },
@@ -13,7 +19,7 @@
     "src/app/api/chat/route.ts": {
       "maxDuration": 60
     },
-    "src/app/api/reports/[id]/pdf/route.ts": {
+    "src/app/api/reports/[id]/pdf/route.tsx": {
       "maxDuration": 120
     },
     "src/app/api/uploads/extract/route.ts": {
