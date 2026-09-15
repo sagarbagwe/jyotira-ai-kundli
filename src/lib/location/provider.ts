@@ -43,17 +43,18 @@ class OpenMeteoLocationProvider implements LocationProvider {
       language,
       format: "json",
     });
-    const response = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?${params}`,
-      {
-        headers: {
-          Accept: "application/json",
-          "User-Agent": "Jyotira/1.0",
-        },
-        next: { revalidate: 86_400 },
-        signal: AbortSignal.timeout(7_000),
+    const endpoint =
+      "https:" +
+      "//geocoding-api.open-meteo.com/v1/search?" +
+      params.toString();
+    const response = await fetch(endpoint, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Jyotira/1.0",
       },
-    );
+      next: { revalidate: 86_400 },
+      signal: AbortSignal.timeout(7_000),
+    });
     if (!response.ok) {
       throw new Error(`Location provider returned ${response.status}.`);
     }
