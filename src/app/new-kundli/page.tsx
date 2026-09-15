@@ -1,25 +1,18 @@
-import { Suspense } from "react";
 import { AppShell } from "@/components/app/app-shell";
-import { NewKundliForm } from "@/components/forms/new-kundli-form";
+import { StatelessKundliForm } from "@/components/forms/stateless-kundli-form";
 
 export const metadata = {
   title: "New Kundli",
-  description: "Enter or upload birth information to generate a calculated Kundli.",
+  description: "Generate a calculated Kundli and Gemini interpretation without an account or database.",
 };
 
 export default function NewKundliPage() {
   return (
     <AppShell
       title="Create a new Kundli"
-      description="Exact astronomical calculations first, grounded AI interpretation second."
+      description="Calculated astrology and Gemini interpretation, kept only in your browser session."
     >
-      <Suspense
-        fallback={
-          <div className="h-96 animate-pulse rounded-[12px] border border-line bg-surface" />
-        }
-      >
-        <NewKundliForm />
-      </Suspense>
+      <StatelessKundliForm />
     </AppShell>
   );
 }
