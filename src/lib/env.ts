@@ -10,7 +10,7 @@ function normalizePublicUrl(value: unknown) {
     typeof normalized === "string" &&
     !/^https?:\/\//i.test(normalized)
   ) {
-    return `https://${normalized}`;
+    return "https:" + "//" + normalized;
   }
   return normalized;
 }
