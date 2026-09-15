@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app/app-shell";
-import { StatelessKundliForm } from "@/components/forms/stateless-kundli-form";
+import { ResilientKundliForm } from "@/components/forms/resilient-kundli-form";
 
 export const metadata = {
   title: "New Kundli",
@@ -12,7 +12,7 @@ export default function NewKundliPage() {
       title="Create a new Kundli"
       description="Calculated astrology and Gemini interpretation, kept only in your browser session."
     >
-      <StatelessKundliForm />
+      <ResilientKundliForm />
     </AppShell>
   );
 }
