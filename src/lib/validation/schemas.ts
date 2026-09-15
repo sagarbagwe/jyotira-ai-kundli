@@ -1,27 +1,29 @@
 import { z } from "zod";
 import { DateTime } from "luxon";
 import { PLANET_NAMES } from "@/lib/astrology/types";
+import {
+  isDateRangeWithinDays,
+  isValidCalendarDate,
+  isValidClockTime,
+  isValidIanaTimezone,
+} from "./date-time";
 
-const validTimezone = z.string().refine(
-  (timezone) => DateTime.local().setZone(timezone).isValid,
-  "Invalid IANA timezone",
-);
+const validTimezone = z.string().refine(isValidIanaTimezone, "Invalid IANA timezone");
+const calendarDate = z.string().refine(isValidCalendarDate, "Invalid calendar date");
 
 export const birthInputSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  dateOfBirth: z
+  dateOfBirth: calendarDate.refine(
+    (date) => DateTime.fromISO(date, { zone: "utc" }) <= DateTime.now().toUTC().endOf("day"),
+    "Date of birth cannot be in the future",
+  ),
+  timeOfBirth: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .refine((date) => DateTime.fromISO(date).isValid, "Invalid date")
-    .refine(
-      (date) => DateTime.fromISO(date) <= DateTime.now().endOf("day"),
-      "Date of birth cannot be in the future",
-    ),
-  timeOfBirth: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
+    .refine(isValidClockTime, "Time must be HH:MM or HH:MM:SS using a 24-hour clock"),
   place: z.string().trim().min(1).max(200),
   country: z.string().trim().min(1).max(120),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  latitude: z.number().finite().min(-90).max(90),
+  longitude: z.number().finite().min(-180).max(180),
   timezone: validTimezone,
   timeAccuracy: z.enum(["exact", "approximate", "unknown"]),
 });
@@ -48,22 +50,12 @@ export const reportRequestSchema = z
         ]),
       )
       .min(1),
-    startDate: z.string().date(),
-    endDate: z.string().date(),
+    startDate: calendarDate,
+    endDate: calendarDate,
   })
   .refine(
-    ({ startDate, endDate }) =>
-      DateTime.fromISO(endDate) > DateTime.fromISO(startDate),
-    { message: "End date must be after start date", path: ["endDate"] },
-  )
-  .refine(
-    ({ startDate, endDate }) =>
-      DateTime.fromISO(endDate).diff(DateTime.fromISO(startDate), "days").days <=
-      730,
-    {
-      message: "Date range cannot exceed 730 days",
-      path: ["endDate"],
-    },
+    ({ startDate, endDate }) => isDateRangeWithinDays(startDate, endDate, 730),
+    { message: "End date must be after start date and no more than 730 days later", path: ["endDate"] },
   );
 
 export const generationRequestSchema = z.object({
@@ -76,10 +68,15 @@ export const chatRequestSchema = z.object({
   question: z.string().trim().min(3).max(1200),
 });
 
-export const transitRequestSchema = z.object({
-  chart: z.unknown(),
-  startDate: z.string().date(),
-  endDate: z.string().date(),
-});
+export const transitRequestSchema = z
+  .object({
+    reportId: z.string().min(1).max(100),
+    startDate: calendarDate,
+    endDate: calendarDate,
+  })
+  .refine(
+    ({ startDate, endDate }) => isDateRangeWithinDays(startDate, endDate, 730),
+    { message: "End date must be after start date and no more than 730 days later", path: ["endDate"] },
+  );
 
 export const extractedPlanetNameSchema = z.enum(PLANET_NAMES);
